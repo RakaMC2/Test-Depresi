@@ -341,6 +341,17 @@ const QUOTES_EN = [
   {text:"Simple but strong.", author:"— Lao Tzu"},
   {text:"Give sincerely, without expecting.", author:"— Mother Teresa"}
 ];
+    const Q_ID = [
+      "Kurang minat atau kesenangan melakukan aktivitas sehari-hari","Merasa sedih, murung, atau putus asa","Kesulitan tidur atau tidur berlebihan","Kelelahan atau kurang energi","Nafsu makan berkurang atau makan berlebihan","Merasa tidak berguna atau gagal","Kesulitan fokus dalam pekerjaan atau hal kecil","Bergerak atau bicara lebih lambat atau gelisah berlebihan","Pikiran lebih baik mati atau menyakiti diri sendiri","Menarik diri dari orang lain atau menghindari interaksi sosial","Merasa cemas berlebihan atau sulit tenang","Kehilangan motivasi untuk masa depan","Sering merasa bersalah tanpa alasan yang jelas","Merasa hidup tidak memiliki tujuan","Sulit menikmati hal-hal kecil yang biasanya menyenangkan","Sering membandingkan diri dengan orang lain dan merasa kurang","Merasa hampa secara emosional","Sulit membuat keputusan sederhana","Kehilangan rasa percaya diri","Merasa tidak berdaya menghadapi masalah","Mudah tersinggung tanpa alasan jelas","Menunda pekerjaan karena tidak punya energi","Sering merasa terisolasi meskipun bersama orang lain","Merasa masa depan tampak suram","Kesulitan menemukan hal yang membuat bahagia"
+    ];
+
+    const Q_EN = [
+      'Little interest or pleasure in doing things','Feeling down, depressed, or hopeless','Trouble falling or staying asleep, or sleeping too much','Feeling tired or having little energy','Poor appetite or overeating','Feeling bad about yourself or that you are a failure','Trouble concentrating on things, such as work or reading','Moving or speaking slowly, or being fidgety or restless','Thoughts that you would be better off dead or hurting yourself','Withdrawing from social interactions','Feeling anxious or unable to relax','Losing motivation for the future','Feeling guilty for no clear reason','Feeling like life has no purpose','Unable to enjoy things you used to like','Comparing yourself to others and feeling inadequate','Feeling emotionally empty','Difficulty making simple decisions','Losing self-confidence','Feeling powerless to face problems','Getting irritated easily','Procrastinating because of low energy','Feeling isolated even with people around','Seeing the future as bleak','Struggling to find things that make you happy'
+    ];
+
+    const OPTS_ID = ['Tidak sama sekali','Beberapa hari','Lebih dari separuh waktu','Hampir setiap hari'];
+    const OPTS_EN = ['Not at all','Several days','More than half the days','Nearly every day'];
+
     function randQuote(){ const q=(lang==='id')? QUOTES_ID: QUOTES_EN; return q[Math.floor(Math.random()*q.length)]; }
     const menuBtn = document.getElementById('menuBtn');
     const langPopup = document.getElementById('langPopup');
@@ -351,7 +362,21 @@ const QUOTES_EN = [
     const startBtn = document.getElementById('startBtn');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const splash = document.getElementById('splash');
+    const quizArea = document.getElementById('quizArea');
+    const box = document.getElementById('box');
+    const qnum = document.getElementById('qnum');
+    const qtext = document.getElementById('qtext');
+    const optionsEl = document.getElementById('options');
+    const bar = document.getElementById('bar');
+    const statPercent = document.getElementById('statPercent');
+    const quickTip = document.getElementById('quickTip');
+    const langLabel = document.getElementById('langLabel');
+    const resultArea = document.getElementById('resultArea');
+    const titleEl = document.getElementById('title');
+    const subtitleEl = document.getElementById('subtitle');
+    const footerEl = document.getElementById('footer');
     let lang='id';
+    function updateProgress(){ const pct = Math.round((answers.length/qs.length)*100); bar.style.width = pct + '%'; statPercent.textContent = pct + '%'; }
     function showQuote(){ const q=randQuote(); quoteText.classList.remove('show'); setTimeout(()=>{ quoteText.textContent='❝ '+q.text+' ❞'; quoteSub.textContent=q.author; quoteText.classList.add('show'); },120); }
     startBtn.addEventListener('click',()=>{ startQuiz(); });
     shuffleBtn.addEventListener('click',()=>{ showQuote(); });
@@ -359,6 +384,39 @@ const QUOTES_EN = [
     langID.addEventListener('click',()=>{ lang='id'; showQuote(); langPopup.classList.add('fadeOut'); setTimeout(()=>{ langPopup.style.display='none'; langPopup.classList.remove('fadeOut'); },1000); });
     langEN.addEventListener('click',()=>{ lang='en'; showQuote(); langPopup.classList.add('fadeOut'); setTimeout(()=>{ langPopup.style.display='none'; langPopup.classList.remove('fadeOut'); },1000); });
     (function init(){ showQuote(); langPopup.style.display='flex'; })();
-    function startQuiz(){ splash.style.display='none'; document.getElementById('quizArea').style.display='block'; }
+    function restartQuiz(){ idx=0; answers=[]; resultArea.innerHTML=''; box.style.display='block'; // go back to splash
+      quizArea.style.transition = `opacity ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-speed'))} ease`;
+      quizArea.style.opacity = 0; setTimeout(()=>{ quizArea.style.display='none'; splash.style.display='flex'; splash.style.opacity = 0; setTimeout(()=>{ splash.style.transition = `opacity ${getComputedStyle(document.documentElement).getPropertyValue('--transition-speed')} ease`; splash.style.opacity = 1; // refresh quote
+        quoteText.classList.remove('show'); setTimeout(()=>{ quoteText.textContent = (lang==='id')? rand(QUOTES_ID) : rand(QUOTES_EN); quoteText.classList.add('show'); }, 160);
+      }, 60); }, 900);
+    }
+    function showResult(){ const total = answers.reduce((a,b)=>a+b,0); const max = qs.length * 3; const percent = (total/max)*100; let message=''; if(percent>85) message = (lang==='id')? 'Kamu terlalu banyak melihat kondisi yang buruk.' : "You're seeing too much of the bad side."; else if(percent>50) message = (lang==='id')? 'Apakah kamu baik-baik saja?' : 'Are you okay?'; else if(percent>25) message = (lang==='id')? 'Kamu sudah dewasa.' : "You're quite mature."; else message = (lang==='id')? 'Kamu masih anak-anak.' : "You\'re still young at heart.";
+
+      const resWrap = document.createElement('div'); resWrap.className = 'result' + ((percent>50)? ' warn' : '');
+      // dynamic vibrant restart button as capsule
+      const restartLabel = (lang==='id')? 'Coba Lagi 🔁' : 'Try Again 🔁';
+      resWrap.innerHTML = `<h3>${(lang==='id')? 'Hasil Kamu' : 'Your Result'}</h3>
+        <p>${(lang==='id')? 'Skor' : 'Score'}: <strong>${total}</strong> / ${max}</p>
+        <p>${(lang==='id')? 'Persentase' : 'Percentage'}: <strong>${percent.toFixed(1)}%</strong></p>
+        <p style="margin-top:8px;font-weight:600">${message}</p>
+        <div style="margin-top:8px;color:var(--muted)">${(lang==='id')? 'Ini hanya indikasi. Jika merasa berisiko, segera cari bantuan profesional.' : 'This is only an indication. If you feel at risk, seek professional help immediately.'}</div>
+        <div style="margin-top:12px"><button id='restartBtn' class='capsule animate glow'>${restartLabel}</button></div>`;
+
+      box.style.display = 'none'; resultArea.innerHTML = ''; resultArea.appendChild(resWrap);
+      // animate gradient on restart
+      document.getElementById('restartBtn').classList.add('animate');
+      document.getElementById('restartBtn').addEventListener('click', ()=>{ restartQuiz(); });
+    }
+    function startQuiz(){ qs = (lang==='id')? Q_ID.slice() : Q_EN.slice(); qs = qs.sort(()=>Math.random()-0.5); idx=0; answers=[];
+
+      splash.style.transition = `opacity ${parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--transition-speed'))} ease`;
+      splash.style.opacity = 0;
+      setTimeout(()=>{ splash.style.display='none'; quizArea.style.display='block'; quizArea.style.opacity = 0; setTimeout(()=>{ quizArea.style.transition = `opacity ${getComputedStyle(document.documentElement).getPropertyValue('--transition-speed')} ease`; quizArea.style.opacity = 1; renderQuestion(); }, 60); }, 900); }
+    function renderQuestion(){
+      if(idx>=qs.length) return showResult();
+      box.classList.remove('hidden'); qnum.textContent = (lang==='id')? `Pertanyaan ${idx+1} dari ${qs.length}` : `Question ${idx+1} of ${qs.length}`; qtext.textContent = qs[idx]; optionsEl.innerHTML = '';
+      const opts = (lang==='id')? OPTS_ID : OPTS_EN;
+      opts.forEach((t,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=t; b.onclick = ()=>{ answers.push(i); idx++; updateProgress(); box.classList.add('hidden'); setTimeout(()=>{ renderQuestion(); }, 420); }; optionsEl.appendChild(b); });
+    }
   </script></body>
 </html>
